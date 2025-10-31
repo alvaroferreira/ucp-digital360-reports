@@ -49,40 +49,40 @@ export function parseSheetData(rows: unknown[][]): StudentResponse[] {
 
   return dataRows.map(row => {
     // Converter edição "1" para "Ed1", "2" para "Ed2", etc
-    const edicaoNum = row[2] || '1';
+    const edicaoNum = (row[2] as string) || '1';
     const edition = `Ed${edicaoNum}`;
 
-    const email = row[1] || ''; // Coluna B: Email Address
+    const email = (row[1] as string) || ''; // Coluna B: Email Address
 
     return {
       timestamp: parseTimestamp(row[0]),
       email: email,
-      module: row[3] || '', // Coluna D: Módulo
+      module: (row[3] as string) || '', // Coluna D: Módulo
       edition: edition, // Coluna C: Edição (convertida)
 
       // Avaliação da Disciplina (Colunas E-I: índices 4-8)
-      clareza_objetivos: parseInt(row[4]) || 0,
-      articulacao_modulos: parseInt(row[5]) || 0,
-      utilizacao_plataformas: parseInt(row[6]) || 0,
-      contributo_aquisicao: parseInt(row[7]) || 0,
-      apreciacao_global_disciplina: parseInt(row[8]) || 0,
+      clareza_objetivos: parseInt((row[4] as string)) || 0,
+      articulacao_modulos: parseInt((row[5] as string)) || 0,
+      utilizacao_plataformas: parseInt((row[6] as string)) || 0,
+      contributo_aquisicao: parseInt((row[7] as string)) || 0,
+      apreciacao_global_disciplina: parseInt((row[8] as string)) || 0,
 
       // Avaliação Docente (Colunas J-P: índices 9-15)
-      estruturacao_aulas: parseInt(row[9]) || 0,
-      exposicao_conteudos: parseInt(row[10]) || 0,
-      dominio_conteudos: parseInt(row[11]) || 0,
-      cumprimento_horario: parseInt(row[12]) || 0,
-      disponibilidade_apoio: parseInt(row[13]) || 0,
-      estimulo_participacao: parseInt(row[14]) || 0,
-      apreciacao_global_docente: parseInt(row[15]) || 0,
+      estruturacao_aulas: parseInt((row[9] as string)) || 0,
+      exposicao_conteudos: parseInt((row[10] as string)) || 0,
+      dominio_conteudos: parseInt((row[11] as string)) || 0,
+      cumprimento_horario: parseInt((row[12] as string)) || 0,
+      disponibilidade_apoio: parseInt((row[13] as string)) || 0,
+      estimulo_participacao: parseInt((row[14] as string)) || 0,
+      apreciacao_global_docente: parseInt((row[15] as string)) || 0,
 
       // Avaliação da Organização (Colunas Q-S: índices 16-18)
-      apoio_equipa_executiva: parseInt(row[16]) || 0,
-      organizacao_condicoes_curso: parseInt(row[17]) || 0,
-      instalacoes_equipamentos: parseInt(row[18]) || 0,
+      apoio_equipa_executiva: parseInt((row[16] as string)) || 0,
+      organizacao_condicoes_curso: parseInt((row[17] as string)) || 0,
+      instalacoes_equipamentos: parseInt((row[18] as string)) || 0,
 
       // Comentários e sugestões (Coluna T: índice 19)
-      comentarios: row[19] || '',
+      comentarios: (row[19] as string) || '',
     };
   });
 }
