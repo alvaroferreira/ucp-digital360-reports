@@ -20,7 +20,10 @@ export async function middleware(req: NextRequest) {
   }
 
   // Get session token
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  const token = await getToken({
+    req,
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
+  })
 
   // If no session, redirect to sign in
   if (!token) {
