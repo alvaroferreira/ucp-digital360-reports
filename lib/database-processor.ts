@@ -202,7 +202,7 @@ export async function generateReportDataFromDB(
       !r.comentariosDeleted
     )
     .map(r => ({
-      text: r.comentarios,
+      text: r.comentarios as string,
       email: r.email,
       timestamp: r.timestamp.toISOString(),
       module: r.module,
