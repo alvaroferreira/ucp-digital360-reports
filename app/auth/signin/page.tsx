@@ -35,7 +35,8 @@ export default function SignInPage() {
         setError('Email ou password incorretos');
       } else if (result?.ok) {
         console.log('✅ [SignIn] Success! Redirecting to dashboard...');
-        window.location.href = '/dashboard';
+        // Force a hard reload to ensure session is picked up
+        window.location.replace('/dashboard');
       } else {
         console.error('❌ [SignIn] Unexpected result:', result);
         setError('Erro inesperado ao fazer login');
