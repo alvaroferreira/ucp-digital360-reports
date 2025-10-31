@@ -161,7 +161,7 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <PDFExporter moduleCode={module} editionCode={edition} />
+                <PDFExporter />
               </div>
             </div>
           </CardContent>
