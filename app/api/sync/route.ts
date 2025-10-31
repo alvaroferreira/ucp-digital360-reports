@@ -7,7 +7,7 @@ import { syncFromGoogleSheets, getSyncHistory, getLastSyncStatus } from '@/lib/s
  * Triggers manual sync from Google Sheets to PostgreSQL
  * ADMIN only
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const session = await auth();
 

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { ReportData, Comment } from '@/types';
 import { ReportTable } from './ReportTable';
-import { ReportCharts } from './ReportCharts';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { getModuleName } from '@/lib/module-names';

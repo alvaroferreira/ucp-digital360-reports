@@ -8,7 +8,7 @@ interface PDFExporterProps {
   editionCode: string;
 }
 
-export function PDFExporter({ moduleCode, editionCode }: PDFExporterProps) {
+export function PDFExporter() {
   const handleExportPDF = () => {
     // Usar window.print() que é mais simples e confiável
     window.print();

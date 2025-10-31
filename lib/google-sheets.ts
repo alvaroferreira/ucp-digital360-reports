@@ -21,7 +21,7 @@ export async function getGoogleSheetsClient(accessToken: string) {
 /**
  * Lê dados da folha Base_Dados
  */
-export async function readBaseDados(accessToken: string): Promise<any[][]> {
+export async function readBaseDados(accessToken: string): Promise<unknown[][]> {
   try {
     const sheets = await getGoogleSheetsClient(accessToken);
     const response = await sheets.spreadsheets.values.get({

@@ -16,13 +16,13 @@ export async function GET(request: NextRequest) {
 
     // Obter parâmetros da query
     const searchParams = request.nextUrl.searchParams;
-    const module = (searchParams.get('module') || 'ALL') as ModuleCode;
-    const edition = (searchParams.get('edition') || 'ALL') as EditionCode;
+    const moduleCode = (searchParams.get('module') || 'ALL') as ModuleCode;
+    const editionCode = (searchParams.get('edition') || 'ALL') as EditionCode;
 
-    console.log(`📊 Carregando dados do PostgreSQL para módulo: ${module}, edição: ${edition}`);
+    console.log(`📊 Carregando dados do PostgreSQL para módulo: ${moduleCode}, edição: ${editionCode}`);
 
     // Gerar dados do relatório diretamente do PostgreSQL
-    const reportData = await generateReportDataFromDB(module, edition);
+    const reportData = await generateReportDataFromDB(moduleCode, editionCode);
 
     console.log(`✅ Dados carregados: ${reportData.totalResponses} respostas`);
 

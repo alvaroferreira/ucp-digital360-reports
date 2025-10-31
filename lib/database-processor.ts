@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import type { StudentResponse as PrismaStudentResponse } from '@prisma/client';
 import {
   ReportData,
   CategoryStatistics,
@@ -98,7 +99,7 @@ export async function getAvailableEditionsFromDB(): Promise<string[]> {
  * Filter responses by module and edition
  */
 function filterResponsesFromDB(
-  responses: any[],
+  responses: PrismaStudentResponse[],
   module: ModuleCode,
   edition: EditionCode
 ) {
@@ -112,7 +113,7 @@ function filterResponsesFromDB(
 /**
  * Calculate discipline statistics from database responses
  */
-function calculateDisciplineStatisticsFromDB(responses: any[]): CategoryStatistics {
+function calculateDisciplineStatisticsFromDB(responses: PrismaStudentResponse[]): CategoryStatistics {
   return {
     clareza_objetivos: calculateItemStatistics(
       responses.map(r => r.clarezaObjetivos).filter(v => v != null)
@@ -135,7 +136,7 @@ function calculateDisciplineStatisticsFromDB(responses: any[]): CategoryStatisti
 /**
  * Calculate teaching statistics from database responses
  */
-function calculateTeachingStatisticsFromDB(responses: any[]): TeachingStatistics {
+function calculateTeachingStatisticsFromDB(responses: PrismaStudentResponse[]): TeachingStatistics {
   return {
     estruturacao_aulas: calculateItemStatistics(
       responses.map(r => r.estruturacaoAulas).filter(v => v != null)
@@ -164,7 +165,7 @@ function calculateTeachingStatisticsFromDB(responses: any[]): TeachingStatistics
 /**
  * Calculate organization statistics from database responses
  */
-function calculateOrganizationStatisticsFromDB(responses: any[]): OrganizationStatistics {
+function calculateOrganizationStatisticsFromDB(responses: PrismaStudentResponse[]): OrganizationStatistics {
   return {
     apoio_equipa_executiva: calculateItemStatistics(
       responses.map(r => r.apoioEquipaExecutiva).filter(v => v != null)

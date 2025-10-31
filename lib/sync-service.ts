@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { Prisma } from '@prisma/client';
 import { readBaseDados } from './google-sheets';
 import { parseSheetData } from './data-processor';
 import { StudentResponse } from '@/types';
@@ -67,7 +68,7 @@ export async function syncFromGoogleSheets(
 
         if (existing) {
           // Record exists - update with incremental logic
-          const updateData: any = {
+          const updateData: Prisma.StudentResponseUpdateInput = {
             timestamp: new Date(row.timestamp),
             clarezaObjetivos: row.clareza_objetivos,
             articulacaoModulos: row.articulacao_modulos,

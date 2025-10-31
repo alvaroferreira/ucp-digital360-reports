@@ -27,7 +27,7 @@ import { calculateTotalEnrolled } from './enrolled-students';
  * Valida e parseia timestamp do Google Sheets
  * Retorna string ISO válida ou data atual se inválido
  */
-function parseTimestamp(timestampValue: any): string {
+function parseTimestamp(timestampValue: unknown): string {
   if (!timestampValue) {
     console.warn('⚠️  Timestamp vazio, usando data atual');
     return new Date().toISOString();
@@ -42,7 +42,7 @@ function parseTimestamp(timestampValue: any): string {
   return parsed.toISOString();
 }
 
-export function parseSheetData(rows: any[][]): StudentResponse[] {
+export function parseSheetData(rows: unknown[][]): StudentResponse[] {
   if (!rows || rows.length < 2) return [];
 
   const dataRows = rows.slice(1); // Pular header
