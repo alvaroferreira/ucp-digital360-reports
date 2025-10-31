@@ -21,18 +21,27 @@ export default function SignInPage() {
     setError('');
 
     try {
+      console.log('🔐 [SignIn] Submitting credentials...');
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
       });
 
+      console.log('🔐 [SignIn] Result:', result);
+
       if (result?.error) {
+        console.error('❌ [SignIn] Error:', result.error);
         setError('Email ou password incorretos');
-      } else {
+      } else if (result?.ok) {
+        console.log('✅ [SignIn] Success! Redirecting to dashboard...');
         window.location.href = '/dashboard';
+      } else {
+        console.error('❌ [SignIn] Unexpected result:', result);
+        setError('Erro inesperado ao fazer login');
       }
     } catch (err) {
+      console.error('❌ [SignIn] Exception:', err);
       setError('Erro ao fazer login');
     } finally {
       setLoading(false);
