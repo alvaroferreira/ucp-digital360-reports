@@ -118,8 +118,8 @@ export async function deleteComment(
 
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const rowEmail = (row[1] || '').trim().toLowerCase();
-      const rowComment = (row[19] || '').trim(); // Coluna T (índice 19)
+      const rowEmail = ((row[1] as string) || '').trim().toLowerCase();
+      const rowComment = ((row[19] as string) || '').trim(); // Coluna T (índice 19)
 
       console.log(`Linha ${i + 1}: email="${rowEmail}", comentário="${rowComment.substring(0, 30)}..."`);
 
