@@ -33,7 +33,7 @@ function parseTimestamp(timestampValue: unknown): string {
     return new Date().toISOString();
   }
 
-  const parsed = new Date(timestampValue);
+  const parsed = new Date(timestampValue as string | number | Date);
   if (isNaN(parsed.getTime())) {
     console.warn(`⚠️  Timestamp inválido: "${timestampValue}", usando data atual`);
     return new Date().toISOString();
