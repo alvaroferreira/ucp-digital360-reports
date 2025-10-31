@@ -23,6 +23,25 @@ import { calculateTotalEnrolled } from './enrolled-students';
  * Q-S: Perguntas de avaliação 3.1 a 3.3 (Organização)
  * T: Comentários e sugestões
  */
+/**
+ * Valida e parseia timestamp do Google Sheets
+ * Retorna string ISO válida ou data atual se inválido
+ */
+function parseTimestamp(timestampValue: any): string {
+  if (!timestampValue) {
+    console.warn('⚠️  Timestamp vazio, usando data atual');
+    return new Date().toISOString();
+  }
+
+  const parsed = new Date(timestampValue);
+  if (isNaN(parsed.getTime())) {
+    console.warn(`⚠️  Timestamp inválido: "${timestampValue}", usando data atual`);
+    return new Date().toISOString();
+  }
+
+  return parsed.toISOString();
+}
+
 export function parseSheetData(rows: any[][]): StudentResponse[] {
   if (!rows || rows.length < 2) return [];
 
@@ -36,7 +55,7 @@ export function parseSheetData(rows: any[][]): StudentResponse[] {
     const email = row[1] || ''; // Coluna B: Email Address
 
     return {
-      timestamp: row[0] || '',
+      timestamp: parseTimestamp(row[0]),
       email: email,
       module: row[3] || '', // Coluna D: Módulo
       edition: edition, // Coluna C: Edição (convertida)
