@@ -50,9 +50,9 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700">
+      <Card className="w-full max-w-md shadow-2xl">
+        <CardHeader className="text-center bg-white">
           <div className="flex justify-center mb-4">
             <Image
               src="/ucp-logo.png"
@@ -62,17 +62,17 @@ export default function SignInPage() {
               className="h-auto"
             />
           </div>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl font-bold text-gray-900">
             Programa Avançado Digital 360°
           </CardTitle>
-          <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-gray-700 mt-2 font-medium">
             Sistema de Relatórios de Avaliação
           </p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 bg-white">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-900 font-semibold">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -81,11 +81,12 @@ export default function SignInPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-900 font-semibold">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -94,16 +95,17 @@ export default function SignInPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 text-center">{error}</p>
+              <p className="text-sm text-red-600 font-semibold text-center bg-red-50 p-2 rounded">{error}</p>
             )}
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
               size="lg"
               disabled={loading}
             >
@@ -118,7 +120,7 @@ export default function SignInPage() {
             </Button>
           </form>
 
-          <p className="text-xs text-center text-gray-500 mt-4">
+          <p className="text-xs text-center text-gray-600 mt-4 font-medium">
             Acesso restrito a utilizadores autorizados
           </p>
         </CardContent>
