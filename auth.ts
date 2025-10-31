@@ -14,52 +14,68 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log('🔐 [authorize] Starting credentials authorization');
-        console.log('🔐 [authorize] Email:', credentials?.email);
+        try {
+          console.log('🔐 [authorize] Starting credentials authorization');
+          console.log('🔐 [authorize] Email:', credentials?.email);
 
-        if (!credentials?.email || !credentials?.password) {
-          console.log('❌ [authorize] Missing credentials');
-          return null
-        }
+          if (!credentials?.email || !credentials?.password) {
+            console.log('❌ [authorize] Missing credentials');
+            throw new Error('Email and password are required')
+          }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string }
-        })
+          console.log('🔐 [authorize] Connecting to database...');
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email as string }
+          })
 
-        console.log('🔐 [authorize] User found:', user ? 'yes' : 'no');
+          console.log('🔐 [authorize] User found:', user ? 'yes' : 'no');
+          if (user) {
+            console.log('🔐 [authorize] User details:', {
+              id: user.id,
+              email: user.email,
+              hasPassword: !!user.password,
+              active: user.active,
+              role: user.role
+            });
+          }
 
-        if (!user || !user.password) {
-          console.log('❌ [authorize] User not found or no password');
-          return null
-        }
+          if (!user || !user.password) {
+            console.log('❌ [authorize] User not found or no password');
+            throw new Error('Invalid email or password')
+          }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        )
+          console.log('🔐 [authorize] Comparing passwords...');
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          )
 
-        console.log('🔐 [authorize] Password valid:', isPasswordValid);
+          console.log('🔐 [authorize] Password valid:', isPasswordValid);
 
-        if (!isPasswordValid) {
-          console.log('❌ [authorize] Invalid password');
-          return null
-        }
+          if (!isPasswordValid) {
+            console.log('❌ [authorize] Invalid password');
+            throw new Error('Invalid email or password')
+          }
 
-        console.log('🔐 [authorize] User active:', user.active);
+          console.log('🔐 [authorize] User active:', user.active);
 
-        if (!user.active) {
-          console.log('❌ [authorize] User not active');
-          return null
-        }
+          if (!user.active) {
+            console.log('❌ [authorize] User not active');
+            throw new Error('User account is not active')
+          }
 
-        console.log('✅ [authorize] Authorization successful, returning user');
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role: user.role,
-          active: user.active,
+          console.log('✅ [authorize] Authorization successful, returning user');
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: user.role,
+            active: user.active,
+          }
+        } catch (error) {
+          console.error('❌ [authorize] Error during authorization:', error);
+          throw error;
         }
       },
     }),
