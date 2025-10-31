@@ -24,3 +24,41 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Estilos para impressão/PDF */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  /* Esconder elementos não necessários na impressão */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Forçar quebra de página */
+  .print\:break-before {
+    page-break-before: always;
+  }
+
+  /* Evitar quebra de página dentro de elementos */
+  .print\:avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Ajustar margens */
+  @page {
+    margin: 1.5cm;
+  }
+
+  /* Garantir que tabelas não quebrem */
+  table {
+    page-break-inside: avoid;
+  }
+
+  /* Garantir bordas nas tabelas */
+  table, th, td {
+    border-color: #000 !important;
+  }
+}
