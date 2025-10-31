@@ -8,7 +8,7 @@ const createUserSchema = z.object({
   email: z.string().email('Email inválido'),
   name: z.string().min(1, 'Nome é obrigatório').optional(),
   role: z.enum(['ADMIN', 'TEACHER', 'VIEWER'], {
-    errorMap: () => ({ message: 'Role inválido' }),
+    message: 'Role inválido'
   }),
   active: z.boolean().default(true),
 })
