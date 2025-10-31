@@ -14,7 +14,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log('🔐 [authorize] Starting credentials authorization');
+        console.log('🔐 [authorize] Email:', credentials?.email);
+
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ [authorize] Missing credentials');
           return null
         }
 
@@ -22,7 +26,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: credentials.email as string }
         })
 
+        console.log('🔐 [authorize] User found:', user ? 'yes' : 'no');
+
         if (!user || !user.password) {
+          console.log('❌ [authorize] User not found or no password');
           return null
         }
 
@@ -31,14 +38,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.password
         )
 
+        console.log('🔐 [authorize] Password valid:', isPasswordValid);
+
         if (!isPasswordValid) {
+          console.log('❌ [authorize] Invalid password');
           return null
         }
+
+        console.log('🔐 [authorize] User active:', user.active);
 
         if (!user.active) {
+          console.log('❌ [authorize] User not active');
           return null
         }
 
+        console.log('✅ [authorize] Authorization successful, returning user');
         return {
           id: user.id,
           email: user.email,
