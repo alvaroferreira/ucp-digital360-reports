@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import { ReportViewer } from '@/components/ReportViewer';
 import { PDFExporter } from '@/components/PDFExporter';
 import { UserProfile } from '@/components/UserProfile';
@@ -78,10 +79,13 @@ export default function DashboardPage() {
             <div className="flex items-center gap-6">
               {/* Logo UCP */}
               <div className="flex-shrink-0">
-                <img
+                <Image
                   src="/ucp-logo.png"
                   alt="Universidade Católica Portuguesa - Porto"
+                  width={128}
+                  height={48}
                   className="w-32 h-auto"
+                  priority
                 />
               </div>
 

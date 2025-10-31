@@ -3,11 +3,6 @@
 import { Button } from './ui/button';
 import { FileDown } from 'lucide-react';
 
-interface PDFExporterProps {
-  moduleCode: string;
-  editionCode: string;
-}
-
 export function PDFExporter() {
   const handleExportPDF = () => {
     // Usar window.print() que é mais simples e confiável
