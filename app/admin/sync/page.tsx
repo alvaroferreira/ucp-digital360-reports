@@ -79,8 +79,8 @@ export default function SyncPage() {
   };
 
   const handleRenewToken = () => {
-    // Redirect to Google OAuth to renew token
-    window.location.href = '/api/auth/signin';
+    // Redirect to Google OAuth to renew token (admin only)
+    window.location.href = '/api/auth/google-oauth';
   };
 
   const getStatusIcon = (status: string) => {

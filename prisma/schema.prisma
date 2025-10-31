@@ -15,6 +15,7 @@ model User {
   email     String   @unique
   name      String?
   image     String?
+  password  String?  // Optional: for credentials-based login
   role      Role     @default(VIEWER)
   active    Boolean  @default(true)
   createdAt DateTime @default(now())

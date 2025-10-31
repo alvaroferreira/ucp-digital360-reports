@@ -1,10 +1,54 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import Credentials from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import { Role } from "@prisma/client"
+import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email as string }
+        })
+
+        if (!user || !user.password) {
+          return null
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password as string,
+          user.password
+        )
+
+        if (!isPasswordValid) {
+          return null
+        }
+
+        if (!user.active) {
+          return null
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          role: user.role,
+          active: user.active,
+        }
+      },
+    }),
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -21,52 +65,64 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, account, profile }) {
       console.log('🔐 [signIn] Starting signIn callback');
       console.log('🔐 [signIn] User email:', user.email);
+      console.log('🔐 [signIn] Provider:', account?.provider);
 
       if (!user.email) {
         console.log('❌ [signIn] No email provided, rejecting sign in');
         return false;
       }
 
-      try {
-        console.log('🔐 [signIn] Upserting user via API...');
+      // For Credentials provider, user is already validated in authorize()
+      if (account?.provider === 'credentials') {
+        console.log('✅ [signIn] Credentials login successful');
+        return true;
+      }
 
-        // Call our Node.js API route to handle Prisma operations
-        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:6699'}/api/auth/user`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: user.email,
-            name: user.name,
-            image: user.image,
-          }),
-        });
+      // For Google OAuth, upsert user in database
+      if (account?.provider === 'google') {
+        try {
+          console.log('🔐 [signIn] Google OAuth - Upserting user via API...');
 
-        if (!response.ok) {
-          console.error('❌ [signIn] API call failed:', response.status);
+          // Call our Node.js API route to handle Prisma operations
+          const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:6699'}/api/auth/user`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            }),
+          });
+
+          if (!response.ok) {
+            console.error('❌ [signIn] API call failed:', response.status);
+            return false;
+          }
+
+          const dbUser = await response.json();
+
+          console.log('✅ [signIn] User in database:', {
+            id: dbUser.id,
+            role: dbUser.role,
+            active: dbUser.active,
+          });
+
+          // Store user ID and role for later use
+          user.id = dbUser.id;
+          (user as any).role = dbUser.role;
+          (user as any).active = dbUser.active;
+
+          console.log('🔐 [signIn] Active status:', dbUser.active);
+          console.log('🔐 [signIn] Returning:', dbUser.active);
+
+          return dbUser.active; // Only allow login if user is active
+        } catch (error) {
+          console.error('❌ [signIn] Error during sign in:', error);
           return false;
         }
-
-        const dbUser = await response.json();
-
-        console.log('✅ [signIn] User in database:', {
-          id: dbUser.id,
-          role: dbUser.role,
-          active: dbUser.active,
-        });
-
-        // Store user ID and role for later use
-        user.id = dbUser.id;
-        (user as any).role = dbUser.role;
-        (user as any).active = dbUser.active;
-
-        console.log('🔐 [signIn] Active status:', dbUser.active);
-        console.log('🔐 [signIn] Returning:', dbUser.active);
-
-        return dbUser.active; // Only allow login if user is active
-      } catch (error) {
-        console.error('❌ [signIn] Error during sign in:', error);
-        return false;
       }
+
+      return false;
     },
     async jwt({ token, account, user, trigger }) {
       console.log('🔑 [jwt] Starting jwt callback');
