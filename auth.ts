@@ -19,70 +19,82 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        try {
-          console.log('🔐 [authorize] Starting credentials authorization');
-          console.log('🔐 [authorize] Email:', credentials?.email);
+        console.log('🔐 [authorize] === START ===');
+        console.log('🔐 [authorize] Credentials received:', {
+          hasEmail: !!credentials?.email,
+          hasPassword: !!credentials?.password,
+          email: credentials?.email,
+        });
 
+        try {
           if (!credentials?.email || !credentials?.password) {
-            console.log('❌ [authorize] Missing credentials');
-            return null // Return null instead of throwing for better error handling
+            console.log('❌ [authorize] Missing credentials, returning null');
+            return null
           }
 
-          console.log('🔐 [authorize] Connecting to database...');
+          console.log('🔐 [authorize] Querying database for user...');
           const user = await prisma.user.findUnique({
             where: { email: credentials.email as string }
           })
 
-          console.log('🔐 [authorize] User found:', user ? 'yes' : 'no');
-          if (user) {
-            console.log('🔐 [authorize] User details:', {
-              id: user.id,
-              email: user.email,
-              hasPassword: !!user.password,
-              active: user.active,
-              role: user.role
-            });
-          }
-
-          if (!user || !user.password) {
-            console.log('❌ [authorize] User not found or no password');
+          if (!user) {
+            console.log('❌ [authorize] User not found in database, returning null');
             return null
           }
 
-          console.log('🔐 [authorize] Comparing passwords...');
+          console.log('✅ [authorize] User found:', {
+            id: user.id,
+            email: user.email,
+            hasPassword: !!user.password,
+            passwordLength: user.password?.length || 0,
+            active: user.active,
+            role: user.role
+          });
+
+          if (!user.password) {
+            console.log('❌ [authorize] User has no password set, returning null');
+            return null
+          }
+
+          console.log('🔐 [authorize] Comparing passwords with bcrypt...');
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string,
             user.password
           )
-
-          console.log('🔐 [authorize] Password valid:', isPasswordValid);
+          console.log('🔐 [authorize] Password comparison result:', isPasswordValid);
 
           if (!isPasswordValid) {
-            console.log('❌ [authorize] Invalid password');
+            console.log('❌ [authorize] Password mismatch, returning null');
             return null
           }
-
-          console.log('🔐 [authorize] User active:', user.active);
 
           if (!user.active) {
-            console.log('❌ [authorize] User not active');
+            console.log('❌ [authorize] User not active, returning null');
             return null
           }
 
-          console.log('✅ [authorize] Authorization successful, returning user');
-
-          // Return user object with all required fields
-          return {
+          const userResponse = {
             id: user.id,
             email: user.email,
             name: user.name,
             image: user.image,
             role: user.role,
             active: user.active,
-          }
+          };
+
+          console.log('✅ [authorize] SUCCESS - Returning user:', userResponse);
+          console.log('🔐 [authorize] === END SUCCESS ===');
+          return userResponse;
+
         } catch (error) {
-          console.error('❌ [authorize] Error during authorization:', error);
-          return null // Always return null on error
+          console.error('❌ [authorize] === EXCEPTION ===');
+          console.error('❌ [authorize] Error type:', typeof error);
+          console.error('❌ [authorize] Error name:', error instanceof Error ? error.name : 'Unknown');
+          console.error('❌ [authorize] Error message:', error instanceof Error ? error.message : String(error));
+          console.error('❌ [authorize] Error stack:', error instanceof Error ? error.stack : 'No stack');
+          console.error('❌ [authorize] Full error object:', JSON.stringify(error, null, 2));
+          console.error('❌ [authorize] === END EXCEPTION ===');
+          return null
         }
       },
     }),
