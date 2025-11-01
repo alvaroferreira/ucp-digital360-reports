@@ -73,17 +73,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return null
           }
 
-          // Return minimal user object - custom fields added via jwt callback
+          // Return user object with role and active - these will be added to token in jwt callback
           const userResponse = {
             id: user.id,
             email: user.email!,
             name: user.name,
             image: user.image,
+            role: user.role,
+            active: user.active,
           };
 
           console.log('✅ [authorize] SUCCESS - Returning user:', userResponse);
-          console.log('🔐 [authorize] User role will be:', user.role);
-          console.log('🔐 [authorize] User active will be:', user.active);
           console.log('🔐 [authorize] === END SUCCESS ===');
           return userResponse;
 
@@ -201,55 +201,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log('🔑 [jwt] User present (first sign in):', {
           id: user.id,
           email: user.email,
+          role: (user as any).role,
+          active: (user as any).active,
         });
         token.userId = user.id;
-
-        // For credentials provider, fetch role and active from database via API
-        if (account?.provider === 'credentials' && user.email) {
-          console.log('🔑 [jwt] Credentials login - fetching role and active from API');
-          try {
-            const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL
-              ? `https://${process.env.VERCEL_URL}`
-              : 'http://localhost:6699';
-
-            const response = await fetch(`${baseUrl}/api/auth/user?email=${encodeURIComponent(user.email)}`);
-            if (response.ok) {
-              const dbUser = await response.json();
-              console.log('🔑 [jwt] Database user data from API:', dbUser);
-              token.role = dbUser.role;
-              token.active = dbUser.active;
-            } else {
-              console.error('❌ [jwt] Failed to fetch user from API:', response.status);
-            }
-          } catch (error) {
-            console.error('❌ [jwt] Error fetching user from API:', error);
-          }
-        }
-      }
-
-      // If we don't have role/active yet but we have email, fetch from database
-      // This handles edge cases where token doesn't have user data
-      if ((!token.role || !token.active) && token.email) {
-        console.log('🔑 [jwt] No userId in token, fetching from database by email:', token.email);
-        try {
-          // Use absolute URL construction for Vercel
-          const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}`
-            : 'http://localhost:6699';
-
-          const response = await fetch(`${baseUrl}/api/auth/user?email=${encodeURIComponent(token.email)}`);
-          if (response.ok) {
-            const dbUser = await response.json();
-            console.log('✅ [jwt] User found in database:', dbUser);
-            token.userId = dbUser.id;
-            token.role = dbUser.role;
-            token.active = dbUser.active;
-          } else {
-            console.log('⚠️ [jwt] User not found in database by email');
-          }
-        } catch (error) {
-          console.error('❌ [jwt] Error fetching user by email:', error);
-        }
+        token.role = (user as any).role;
+        token.active = (user as any).active;
       }
 
       console.log('🔑 [jwt] Final token data:', {
