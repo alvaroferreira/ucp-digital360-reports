@@ -30,13 +30,14 @@ export default function SignInPage() {
 
       console.log('🔐 [SignIn] Result:', result);
 
-      if (result?.error) {
-        console.error('❌ [SignIn] Error:', result.error);
-        setError('Email ou password incorretos');
-      } else if (result?.ok) {
+      // Check ok FIRST - NextAuth v5 can return both ok:true and error
+      if (result?.ok) {
         console.log('✅ [SignIn] Success! Redirecting to dashboard...');
         // Force a hard reload to ensure session is picked up
         window.location.replace('/dashboard');
+      } else if (result?.error) {
+        console.error('❌ [SignIn] Error:', result.error);
+        setError('Email ou password incorretos');
       } else {
         console.error('❌ [SignIn] Unexpected result:', result);
         setError('Erro inesperado ao fazer login');
