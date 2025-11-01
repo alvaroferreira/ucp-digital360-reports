@@ -6,6 +6,10 @@ import { Role } from "@prisma/client"
 import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   trustHost: true,
   providers: [
     Credentials({
@@ -21,7 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (!credentials?.email || !credentials?.password) {
             console.log('❌ [authorize] Missing credentials');
-            throw new Error('Email and password are required')
+            return null // Return null instead of throwing for better error handling
           }
 
           console.log('🔐 [authorize] Connecting to database...');
@@ -42,7 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (!user || !user.password) {
             console.log('❌ [authorize] User not found or no password');
-            throw new Error('Invalid email or password')
+            return null
           }
 
           console.log('🔐 [authorize] Comparing passwords...');
@@ -55,17 +59,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (!isPasswordValid) {
             console.log('❌ [authorize] Invalid password');
-            throw new Error('Invalid email or password')
+            return null
           }
 
           console.log('🔐 [authorize] User active:', user.active);
 
           if (!user.active) {
             console.log('❌ [authorize] User not active');
-            throw new Error('User account is not active')
+            return null
           }
 
           console.log('✅ [authorize] Authorization successful, returning user');
+
+          // Return user object with all required fields
           return {
             id: user.id,
             email: user.email,
@@ -76,7 +82,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         } catch (error) {
           console.error('❌ [authorize] Error during authorization:', error);
-          throw error;
+          return null // Always return null on error
         }
       },
     }),
@@ -92,6 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log('🔐 [signIn] Starting signIn callback');
@@ -114,8 +121,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           console.log('🔐 [signIn] Google OAuth - Upserting user via API...');
 
-          // Call our Node.js API route to handle Prisma operations
-          const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:6699'}/api/auth/user`, {
+          // Use absolute URL construction for Vercel
+          const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : 'http://localhost:6699';
+
+          const response = await fetch(`${baseUrl}/api/auth/user`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -155,13 +166,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return false;
     },
+
     async jwt({ token, account, user, trigger }) {
       console.log('🔑 [jwt] Starting jwt callback');
       console.log('🔑 [jwt] Trigger:', trigger);
       console.log('🔑 [jwt] User object:', user);
       console.log('🔑 [jwt] Token email:', token.email);
 
-      // Guardar o access token quando o utilizador faz login
+      // Save access token when user logs in
       if (account) {
         console.log('🔑 [jwt] Account present, saving tokens');
         token.accessToken = account.access_token
@@ -181,10 +193,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // If we don't have userId yet but we have email, fetch from database via API
+      // This handles edge cases where token doesn't have user data
       if (!token.userId && token.email) {
         console.log('🔑 [jwt] No userId in token, fetching from database by email:', token.email);
         try {
-          const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:6699'}/api/auth/user?email=${encodeURIComponent(token.email)}`);
+          // Use absolute URL construction for Vercel
+          const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : 'http://localhost:6699';
+
+          const response = await fetch(`${baseUrl}/api/auth/user?email=${encodeURIComponent(token.email)}`);
           if (response.ok) {
             const dbUser = await response.json();
             console.log('✅ [jwt] User found in database:', dbUser);
@@ -208,6 +226,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return token
     },
+
     async session({ session, token }) {
       console.log('🎫 [session] Starting session callback');
       console.log('🎫 [session] Token data:', {
@@ -216,23 +235,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         active: token.active,
       });
 
-      // Adicionar access token, role e user ID à sessão
-      session.accessToken = token.accessToken as string
-      session.user.id = token.userId as string
-      session.user.role = token.role as Role
-      session.user.active = token.active as boolean
+      // Add access token, role and user ID to session
+      if (session.user) {
+        session.accessToken = token.accessToken as string
+        session.user.id = token.userId as string
+        session.user.role = token.role as Role
+        session.user.active = token.active as boolean
+      }
 
       console.log('✅ [session] Final session data:', {
-        userId: session.user.id,
-        email: session.user.email,
-        role: session.user.role,
-        active: session.user.active,
+        userId: session.user?.id,
+        email: session.user?.email,
+        role: session.user?.role,
+        active: session.user?.active,
       });
 
       return session
     },
   },
+
   pages: {
     signIn: '/auth/signin',
+    error: '/auth/error', // Add error page for better UX
   },
+
+  // Enable debug mode in development
+  debug: process.env.NODE_ENV === 'development',
 })
