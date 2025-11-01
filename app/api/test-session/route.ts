@@ -8,7 +8,7 @@ export async function GET() {
     const session = await auth()
 
     // Get all cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const allCookies = cookieStore.getAll()
 
     // Look for auth cookies
