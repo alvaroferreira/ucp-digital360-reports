@@ -125,7 +125,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // For Credentials provider, user is already validated in authorize()
-      if (account?.provider === 'credentials') {
+      if (account?.provider === 'credentials' || account?.type === 'credentials') {
         console.log('✅ [signIn] Credentials provider detected');
         console.log('✅ [signIn] User has role:', (user as any).role);
         console.log('✅ [signIn] User is active:', (user as any).active);
@@ -134,7 +134,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // For Google OAuth, upsert user in database
-      if (account?.provider === 'google') {
+      if (account?.provider === 'google' || account?.type === 'oauth') {
         try {
           console.log('🔐 [signIn] Google OAuth - Upserting user via API...');
 
