@@ -205,23 +205,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
         token.userId = user.id;
 
-        // For credentials provider, fetch role and active from database
-        if (account?.provider === 'credentials') {
-          console.log('🔑 [jwt] Credentials login - fetching role and active from database');
+        // For credentials provider, fetch role and active from database via API
+        if (account?.provider === 'credentials' && user.email) {
+          console.log('🔑 [jwt] Credentials login - fetching role and active from API');
           try {
-            const dbUser = await prisma.user.findUnique({
-              where: { id: user.id },
-              select: { role: true, active: true }
-            });
-            if (dbUser) {
-              console.log('🔑 [jwt] Database user data:', dbUser);
+            const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL
+              ? `https://${process.env.VERCEL_URL}`
+              : 'http://localhost:6699';
+
+            const response = await fetch(`${baseUrl}/api/auth/user?email=${encodeURIComponent(user.email)}`);
+            if (response.ok) {
+              const dbUser = await response.json();
+              console.log('🔑 [jwt] Database user data from API:', dbUser);
               token.role = dbUser.role;
               token.active = dbUser.active;
             } else {
-              console.error('❌ [jwt] User not found in database!');
+              console.error('❌ [jwt] Failed to fetch user from API:', response.status);
             }
           } catch (error) {
-            console.error('❌ [jwt] Error fetching user from database:', error);
+            console.error('❌ [jwt] Error fetching user from API:', error);
           }
         }
       }
