@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 import { auth } from "@/auth"
 
 // CRITICAL: Use Edge Runtime for middleware (required by Next.js)
-export const runtime = 'edge'
+export const runtime = 'experimental-edge'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
