@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
 // CRITICAL: Use Edge Runtime for middleware (required by Next.js)
-export const runtime = 'experimental-edge'
+export const runtime = 'edge'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -19,6 +19,12 @@ export async function middleware(req: NextRequest) {
   // Allow all NextAuth API routes (they handle their own auth)
   if (pathname.startsWith('/api/auth/')) {
     console.log('🛡️  [middleware] Auth API route, allowing access');
+    return NextResponse.next()
+  }
+
+  // Allow test/debug API routes (for development and testing)
+  if (pathname.startsWith('/api/test-auth') || pathname.startsWith('/api/debug/')) {
+    console.log('🛡️  [middleware] Test/debug API route, allowing access');
     return NextResponse.next()
   }
 
