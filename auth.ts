@@ -113,18 +113,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log('🔐 [signIn] Starting signIn callback');
-      console.log('🔐 [signIn] User email:', user.email);
-      console.log('🔐 [signIn] Provider:', account?.provider);
+      console.log('🔐 [signIn] === SIGNIN CALLBACK START ===');
+      console.log('🔐 [signIn] User:', JSON.stringify(user, null, 2));
+      console.log('🔐 [signIn] Account provider:', account?.provider);
+      console.log('🔐 [signIn] Account type:', account?.type);
 
       if (!user.email) {
-        console.log('❌ [signIn] No email provided, rejecting sign in');
+        console.log('❌ [signIn] REJECTING - No email provided');
         return false;
       }
 
       // For Credentials provider, user is already validated in authorize()
       if (account?.provider === 'credentials') {
-        console.log('✅ [signIn] Credentials login successful');
+        console.log('✅ [signIn] Credentials provider detected');
+        console.log('✅ [signIn] User has role:', (user as any).role);
+        console.log('✅ [signIn] User is active:', (user as any).active);
+        console.log('✅ [signIn] ALLOWING credentials login');
         return true;
       }
 
