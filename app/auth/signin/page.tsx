@@ -22,26 +22,17 @@ export default function SignInPage() {
 
     try {
       console.log('🔐 [SignIn] Submitting credentials...');
-      const result = await signIn('credentials', {
+
+      // Use redirect: true to let NextAuth handle the redirect with proper cookies
+      await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        callbackUrl: '/dashboard',
       });
 
-      console.log('🔐 [SignIn] Result:', result);
-
-      // Check ok FIRST - NextAuth v5 can return both ok:true and error
-      if (result?.ok) {
-        console.log('✅ [SignIn] Success! Redirecting to dashboard...');
-        // Force a hard reload to ensure session is picked up
-        window.location.replace('/dashboard');
-      } else if (result?.error) {
-        console.error('❌ [SignIn] Error:', result.error);
-        setError('Email ou password incorretos');
-      } else {
-        console.error('❌ [SignIn] Unexpected result:', result);
-        setError('Erro inesperado ao fazer login');
-      }
+      // If we reach here, sign in failed (redirect would have happened)
+      console.error('❌ [SignIn] Sign in failed - no redirect occurred');
+      setError('Email ou password incorretos');
     } catch (err) {
       console.error('❌ [SignIn] Exception:', err);
       setError('Erro ao fazer login');
