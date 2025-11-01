@@ -29,10 +29,7 @@ export async function GET() {
         total: allCookies.length,
         authCookies: authCookies.map(c => ({
           name: c.name,
-          value: c.value.substring(0, 20) + '...',
-          httpOnly: c.httpOnly,
-          secure: c.secure,
-          sameSite: c.sameSite
+          value: c.value.substring(0, 20) + '...'
         }))
       },
       environment: {
