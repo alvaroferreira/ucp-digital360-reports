@@ -73,16 +73,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return null
           }
 
+          // Return minimal user object - custom fields added via jwt callback
           const userResponse = {
             id: user.id,
-            email: user.email,
+            email: user.email!,
             name: user.name,
             image: user.image,
-            role: user.role,
-            active: user.active,
           };
 
           console.log('✅ [authorize] SUCCESS - Returning user:', userResponse);
+          console.log('🔐 [authorize] User role will be:', user.role);
+          console.log('🔐 [authorize] User active will be:', user.active);
           console.log('🔐 [authorize] === END SUCCESS ===');
           return userResponse;
 
@@ -201,16 +202,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         console.log('🔑 [jwt] User present (first sign in):', {
           id: user.id,
           email: user.email,
-          role: (user as any).role,
         });
         token.userId = user.id;
-        token.role = (user as any).role;
-        token.active = (user as any).active;
+
+        // For credentials provider, fetch role and active from database
+        if (account?.provider === 'credentials') {
+          console.log('🔑 [jwt] Credentials login - fetching role and active from database');
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: user.id },
+              select: { role: true, active: true }
+            });
+            if (dbUser) {
+              console.log('🔑 [jwt] Database user data:', dbUser);
+              token.role = dbUser.role;
+              token.active = dbUser.active;
+            } else {
+              console.error('❌ [jwt] User not found in database!');
+            }
+          } catch (error) {
+            console.error('❌ [jwt] Error fetching user from database:', error);
+          }
+        }
       }
 
-      // If we don't have userId yet but we have email, fetch from database via API
+      // If we don't have role/active yet but we have email, fetch from database
       // This handles edge cases where token doesn't have user data
-      if (!token.userId && token.email) {
+      if ((!token.role || !token.active) && token.email) {
         console.log('🔑 [jwt] No userId in token, fetching from database by email:', token.email);
         try {
           // Use absolute URL construction for Vercel
