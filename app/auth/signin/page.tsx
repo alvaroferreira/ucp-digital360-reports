@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,24 +25,13 @@ export default function SignInPage() {
     try {
       console.log('🔐 [SignIn] Submitting credentials...');
 
-      // Use redirect: false to handle errors manually
+      // Try with redirect: true for better cookie handling
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        redirect: true,
         callbackUrl: '/dashboard',
       });
-
-      console.log('🔐 [SignIn] Sign in result:', result);
-
-      if (result?.error) {
-        console.error('❌ [SignIn] Sign in failed:', result.error);
-        setError('Email ou password incorretos');
-      } else if (result?.ok) {
-        console.log('✅ [SignIn] Sign in successful, redirecting...');
-        // Redirect manually after successful sign in
-        window.location.href = result.url || '/dashboard';
-      }
     } catch (err) {
       console.error('❌ [SignIn] Exception:', err);
       setError('Erro ao fazer login');

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,16 +8,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  image     String?
-  password  String?  // Optional: for credentials-based login
-  role      Role     @default(VIEWER)
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  image        String?
+  role         Role         @default(VIEWER)
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  password     String?
   auditLogs    AuditLog[]
   syncStatuses SyncStatus[]
 
@@ -28,27 +24,17 @@ model User {
   @@index([role])
 }
 
-enum Role {
-  ADMIN
-  TEACHER
-  VIEWER
-}
-
 model StudentResponse {
-  id        String   @id @default(cuid())
-  timestamp DateTime
-  email     String
-  module    String
-  edition   String
-
-  // Avaliação da Disciplina
-  clarezaObjetivos            Int?
-  articulacaoModulos          Int?
-  utilizacaoPlataformas       Int?
-  contributoAquisicao         Int?
-  apreciacaoGlobalDisciplina  Int?
-
-  // Avaliação Docente
+  id                         String    @id @default(cuid())
+  timestamp                  DateTime
+  email                      String
+  module                     String
+  edition                    String
+  clarezaObjetivos           Int?
+  articulacaoModulos         Int?
+  utilizacaoPlataformas      Int?
+  contributoAquisicao        Int?
+  apreciacaoGlobalDisciplina Int?
   estruturacaoAulas          Int?
   exposicaoConteudos         Int?
   dominioConteudos           Int?
@@ -56,21 +42,15 @@ model StudentResponse {
   disponibilidadeApoio       Int?
   estimuloParticipacao       Int?
   apreciacaoGlobalDocente    Int?
-
-  // Avaliação da Organização
-  apoioEquipaExecutiva        Int?
-  organizacaoCondicoesCurso   Int?
-  instalacoesEquipamentos     Int?
-
-  // Comentários
-  comentarios        String?
-  comentariosDeleted Boolean  @default(false)
-
-  // Sync metadata
-  gsheetsRowIndex Int?
-  lastSyncedAt    DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  apoioEquipaExecutiva       Int?
+  organizacaoCondicoesCurso  Int?
+  instalacoesEquipamentos    Int?
+  comentarios                String?
+  comentariosDeleted         Boolean   @default(false)
+  gsheetsRowIndex            Int?
+  lastSyncedAt               DateTime?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
 
   @@unique([email, module, edition])
   @@index([module, edition])
@@ -78,35 +58,41 @@ model StudentResponse {
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  userId     String?
-  user       User?    @relation(fields: [userId], references: [id])
-  action     String
-  tableName  String?
-  recordId   String?
-  oldValue   String?
-  newValue   String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  tableName String?
+  recordId  String?
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([createdAt])
   @@index([userId])
 }
 
 model SyncStatus {
-  id             String    @id @default(cuid())
-  startedAt      DateTime
-  completedAt    DateTime?
-  status         SyncStatusEnum
-  rowsProcessed  Int       @default(0)
-  rowsAdded      Int       @default(0)
-  rowsUpdated    Int       @default(0)
-  errorMessage   String?
-  triggeredById  String?
-  triggeredBy    User?     @relation(fields: [triggeredById], references: [id])
-  createdAt      DateTime  @default(now())
+  id            String         @id @default(cuid())
+  startedAt     DateTime
+  completedAt   DateTime?
+  status        SyncStatusEnum
+  rowsProcessed Int            @default(0)
+  rowsAdded     Int            @default(0)
+  rowsUpdated   Int            @default(0)
+  errorMessage  String?
+  triggeredById String?
+  createdAt     DateTime       @default(now())
+  triggeredBy   User?          @relation(fields: [triggeredById], references: [id])
 
   @@index([startedAt])
   @@index([status])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  VIEWER
 }
 
 enum SyncStatusEnum {

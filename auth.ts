@@ -259,6 +259,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: '/auth/error', // Add error page for better UX
   },
 
+  // Use secure cookies in production
+  useSecureCookies: process.env.NODE_ENV === 'production',
+
   // Enable debug mode in development
   debug: process.env.NODE_ENV === 'development',
 })
