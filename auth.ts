@@ -83,7 +83,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             active: user.active,
           };
 
-          console.log('✅ [authorize] SUCCESS - Returning user:', userResponse);
+          console.log('✅ [authorize] SUCCESS - Returning user:', JSON.stringify(userResponse, null, 2));
+          console.log('✅ [authorize] User email check:', {
+            hasEmail: !!userResponse.email,
+            emailValue: userResponse.email,
+            emailType: typeof userResponse.email
+          });
           console.log('🔐 [authorize] === END SUCCESS ===');
           return userResponse;
 
@@ -119,16 +124,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       console.log('🔐 [signIn] Account provider:', account?.provider);
       console.log('🔐 [signIn] Account type:', account?.type);
 
-      if (!user.email) {
-        console.log('❌ [signIn] REJECTING - No email provided');
-        return false;
-      }
-
-      // For Credentials provider, skip signIn callback entirely
-      // User is already validated in authorize(), and signIn callback can cause issues
+      // CRITICAL FIX: Check provider FIRST, before any other validation
+      // For Credentials provider, user is already validated in authorize()
+      // Return true immediately to avoid any additional validation that might fail
       if (account?.provider === 'credentials') {
         console.log('✅ [signIn] Credentials provider - ALLOWING (validated in authorize)');
+        console.log('🔐 [signIn] === SIGNIN CALLBACK END SUCCESS ===');
         return true;
+      }
+
+      // For OAuth providers (Google, etc), validate email exists
+      if (!user.email) {
+        console.log('❌ [signIn] REJECTING - No email provided (OAuth provider)');
+        return false;
       }
 
       // For Google OAuth, upsert user in database
