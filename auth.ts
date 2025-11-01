@@ -124,17 +124,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false;
       }
 
-      // For Credentials provider, user is already validated in authorize()
-      if (account?.provider === 'credentials' || account?.type === 'credentials') {
-        console.log('✅ [signIn] Credentials provider detected');
-        console.log('✅ [signIn] User has role:', (user as any).role);
-        console.log('✅ [signIn] User is active:', (user as any).active);
-        console.log('✅ [signIn] ALLOWING credentials login');
+      // For Credentials provider, skip signIn callback entirely
+      // User is already validated in authorize(), and signIn callback can cause issues
+      if (account?.provider === 'credentials') {
+        console.log('✅ [signIn] Credentials provider - ALLOWING (validated in authorize)');
         return true;
       }
 
       // For Google OAuth, upsert user in database
-      if (account?.provider === 'google' || account?.type === 'oauth') {
+      if (account?.provider === 'google') {
         try {
           console.log('🔐 [signIn] Google OAuth - Upserting user via API...');
 
@@ -181,6 +179,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
 
+      console.log('❌ [signIn] Unknown provider, rejecting');
       return false;
     },
 
