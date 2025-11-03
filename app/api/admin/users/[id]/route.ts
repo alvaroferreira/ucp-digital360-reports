@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import bcrypt from 'bcryptjs'
 
 // Schema de validação para atualizar utilizador
 const updateUserSchema = z.object({
@@ -9,6 +10,7 @@ const updateUserSchema = z.object({
   name: z.string().min(1).optional(),
   role: z.enum(['ADMIN', 'TEACHER', 'VIEWER']).optional(),
   active: z.boolean().optional(),
+  password: z.string().min(8).optional(),
 })
 
 // PATCH /api/admin/users/[id] - Atualizar utilizador
@@ -61,10 +63,23 @@ export async function PATCH(
       }
     }
 
+    // Preparar dados para atualização
+    const updateData: any = {
+      email: validatedData.email,
+      name: validatedData.name,
+      role: validatedData.role,
+      active: validatedData.active,
+    }
+
+    // Se password foi fornecida, fazer hash
+    if (validatedData.password) {
+      updateData.password = await bcrypt.hash(validatedData.password, 10)
+    }
+
     // Atualizar utilizador
     const updatedUser = await prisma.user.update({
       where: { id },
-      data: validatedData,
+      data: updateData,
       select: {
         id: true,
         email: true,

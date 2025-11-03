@@ -31,6 +31,7 @@ export function EditUserDialog({
   const [name, setName] = useState('')
   const [role, setRole] = useState<Role>('VIEWER')
   const [active, setActive] = useState(true)
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,6 +42,7 @@ export function EditUserDialog({
       setName(user.name || '')
       setRole(user.role)
       setActive(user.active)
+      setPassword('')
       setError('')
     }
   }, [user])
@@ -51,6 +53,13 @@ export function EditUserDialog({
     if (!user) return
 
     setError('')
+
+    // Validate password if provided
+    if (password && password.length < 8) {
+      setError('Password deve ter pelo menos 8 caracteres')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -62,6 +71,7 @@ export function EditUserDialog({
           name: name || undefined,
           role,
           active,
+          ...(password && { password }), // Only include if password is provided
         }),
       })
 
@@ -189,6 +199,24 @@ export function EditUserDialog({
               <option value="true">Ativo</option>
               <option value="false">Inativo</option>
             </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="edit-password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Password (opcional)
+            </label>
+            <input
+              id="edit-password"
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+              placeholder="Deixar vazio para não alterar (mínimo 8 caracteres)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+            />
           </div>
 
           <div className="flex gap-3 pt-4">
