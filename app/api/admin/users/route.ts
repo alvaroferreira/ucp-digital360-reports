@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import bcrypt from 'bcryptjs'
 
 // Schema de validação para criar utilizador
 const createUserSchema = z.object({
@@ -11,6 +12,7 @@ const createUserSchema = z.object({
     message: 'Role inválido'
   }),
   active: z.boolean().default(true),
+  password: z.string().min(8, 'Password deve ter pelo menos 8 caracteres'),
 })
 
 // GET /api/admin/users - Listar todos os utilizadores
@@ -70,6 +72,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Hash da password
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10)
+
     // Criar novo utilizador
     const newUser = await prisma.user.create({
       data: {
@@ -77,6 +82,7 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         role: validatedData.role,
         active: validatedData.active,
+        password: hashedPassword,
       },
       select: {
         id: true,

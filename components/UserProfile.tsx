@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,8 +12,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Shield, Users as UsersIcon, Settings } from 'lucide-react';
+import { LogOut, User, Shield, Users as UsersIcon, Settings, Key } from 'lucide-react';
 import { Role } from '@prisma/client';
+import { ChangePasswordDialog } from '@/components/user/ChangePasswordDialog';
 
 interface UserProfileProps {
   showFullInfo?: boolean;
@@ -21,6 +23,7 @@ interface UserProfileProps {
 export function UserProfile({ showFullInfo = false }: UserProfileProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   if (!session?.user) {
     return null;
@@ -128,21 +131,36 @@ export function UserProfile({ showFullInfo = false }: UserProfileProps) {
 
         <DropdownMenuSeparator />
 
+        <DropdownMenuItem
+          onClick={() => setShowChangePassword(true)}
+          className="cursor-pointer"
+        >
+          <Key className="h-4 w-4 mr-2" />
+          <span>Alterar Password</span>
+        </DropdownMenuItem>
+
         {user.role === 'ADMIN' && (
           <>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push('/admin')} className="cursor-pointer">
               <Settings className="h-4 w-4 mr-2" />
               <span>Painel de Administração</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
           </>
         )}
+
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           <LogOut className="h-4 w-4 mr-2" />
           <span>Terminar Sessão</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
+
+      <ChangePasswordDialog
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
     </DropdownMenu>
   );
 }

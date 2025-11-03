@@ -2,83 +2,96 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { Role } from '@prisma/client'
 
-type AddUserDialogProps = {
+type ChangePasswordDialogProps = {
   isOpen: boolean
   onClose: () => void
-  onUserAdded: () => void
 }
 
-export function AddUserDialog({
+export function ChangePasswordDialog({
   isOpen,
   onClose,
-  onUserAdded,
-}: AddUserDialogProps) {
-  const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
-  const [role, setRole] = useState<Role>('VIEWER')
-  const [password, setPassword] = useState('')
+}: ChangePasswordDialogProps) {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess(false)
 
-    // Validar password
-    if (!password) {
-      setError('Password é obrigatória')
+    // Validações client-side
+    if (!currentPassword) {
+      setError('Password atual é obrigatória')
       return
     }
 
-    if (password.length < 8) {
-      setError('Password deve ter pelo menos 8 caracteres')
+    if (newPassword.length < 8) {
+      setError('Nova password deve ter pelo menos 8 caracteres')
       return
     }
 
-    if (password !== confirmPassword) {
-      setError('As passwords não coincidem')
+    if (newPassword !== confirmPassword) {
+      setError('As novas passwords não coincidem')
+      return
+    }
+
+    if (currentPassword === newPassword) {
+      setError('A nova password deve ser diferente da atual')
       return
     }
 
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch('/api/user/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
-          name: name || undefined,
-          role,
-          active: true,
-          password,
+          currentPassword,
+          newPassword,
+          confirmPassword,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Erro ao criar utilizador')
+        setError(data.error || 'Erro ao alterar password')
         return
       }
 
-      // Reset form
-      setEmail('')
-      setName('')
-      setRole('VIEWER')
-      setPassword('')
+      // Sucesso
+      setSuccess(true)
+      setCurrentPassword('')
+      setNewPassword('')
       setConfirmPassword('')
-      setError('')
-      onUserAdded()
-      onClose()
+
+      // Fechar após 2 segundos
+      setTimeout(() => {
+        onClose()
+        setSuccess(false)
+      }, 2000)
     } catch (error) {
       console.error('Erro:', error)
-      setError('Erro ao criar utilizador')
+      setError('Erro ao alterar password')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleClose = () => {
+    if (!isLoading) {
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+      setError('')
+      setSuccess(false)
+      onClose()
     }
   }
 
@@ -89,10 +102,10 @@ export function AddUserDialog({
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">
-            Adicionar Utilizador
+            Alterar Password
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600"
             disabled={isLoading}
           >
@@ -107,75 +120,43 @@ export function AddUserDialog({
             </div>
           )}
 
+          {success && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-3">
+              <p className="text-sm text-green-800">Password alterada com sucesso!</p>
+            </div>
+          )}
+
           <div>
             <label
-              htmlFor="email"
+              htmlFor="currentPassword"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email *
+              Password Atual *
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
               required
               disabled={isLoading}
-              placeholder="utilizador@exemplo.com"
+              placeholder="Introduza a password atual"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
             <label
-              htmlFor="name"
+              htmlFor="newPassword"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Nome
+              Nova Password *
             </label>
             <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
-              placeholder="Nome do utilizador"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="role"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Role *
-            </label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value as Role)}
-              disabled={isLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="VIEWER">Viewer - Apenas visualizar</option>
-              <option value="TEACHER">Teacher - Visualizar e editar</option>
-              <option value="ADMIN">Admin - Acesso completo</option>
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Password *
-            </label>
-            <input
-              id="password"
+              id="newPassword"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               required
               disabled={isLoading}
               placeholder="Mínimo 8 caracteres"
@@ -188,7 +169,7 @@ export function AddUserDialog({
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Confirmar Password *
+              Confirmar Nova Password *
             </label>
             <input
               id="confirmPassword"
@@ -197,7 +178,7 @@ export function AddUserDialog({
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={isLoading}
-              placeholder="Repita a password"
+              placeholder="Repita a nova password"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -205,7 +186,7 @@ export function AddUserDialog({
           <div className="flex gap-3 pt-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isLoading}
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50"
             >
@@ -216,7 +197,7 @@ export function AddUserDialog({
               disabled={isLoading}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {isLoading ? 'A criar...' : 'Criar Utilizador'}
+              {isLoading ? 'A alterar...' : 'Alterar Password'}
             </button>
           </div>
         </form>
