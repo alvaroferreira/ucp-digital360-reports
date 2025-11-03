@@ -64,7 +64,13 @@ export async function PATCH(
     }
 
     // Preparar dados para atualização
-    const updateData: any = {
+    const updateData: {
+      email?: string
+      name?: string
+      role?: 'ADMIN' | 'TEACHER' | 'VIEWER'
+      active?: boolean
+      password?: string
+    } = {
       email: validatedData.email,
       name: validatedData.name,
       role: validatedData.role,
