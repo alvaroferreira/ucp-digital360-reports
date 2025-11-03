@@ -6,10 +6,53 @@ import { Role } from "@prisma/client"
 import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  // Base path for NextAuth - critical for Vercel
+  basePath: '/api/auth',
+
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+
+  // CRITICAL: Explicit cookie configuration for Vercel
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.session-token'
+        : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax', // CRITICAL for Vercel
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production'
+          ? process.env.COOKIE_DOMAIN // Set in Vercel env vars if using custom domain
+          : undefined,
+      },
+    },
+    callbackUrl: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-next-auth.callback-url'
+        : 'next-auth.callback-url',
+      options: {
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    csrfToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Host-next-auth.csrf-token'
+        : 'next-auth.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
+
   trustHost: true,
   providers: [
     Credentials({
@@ -144,10 +187,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           console.log('🔐 [signIn] Google OAuth - Upserting user via API...');
 
-          // Use absolute URL construction for Vercel
-          const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL
-            ? `https://${process.env.VERCEL_URL}`
-            : 'http://localhost:6699';
+          // FIXED: Proper URL construction for Vercel
+          const baseUrl = process.env.NEXTAUTH_URL
+            || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:6699');
 
           const response = await fetch(`${baseUrl}/api/auth/user`, {
             method: 'POST',
@@ -258,9 +300,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: '/auth/signin',
     error: '/auth/error', // Add error page for better UX
   },
-
-  // Use secure cookies in production
-  useSecureCookies: process.env.NODE_ENV === 'production',
 
   // Enable debug mode in development
   debug: process.env.NODE_ENV === 'development',

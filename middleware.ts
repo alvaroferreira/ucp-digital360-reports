@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { getToken } from "next-auth/jwt"
+import { auth } from "@/auth"
 
-// CRITICAL: Use Edge Runtime for middleware (required by Next.js)
+// Edge Runtime is required for Next.js middleware (experimental-edge for Next.js 15)
 export const runtime = 'experimental-edge'
 
 export async function middleware(req: NextRequest) {
@@ -28,28 +28,26 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Get session token (Edge-compatible, doesn't import Prisma/bcrypt)
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
-  })
+  // FIXED: Use auth() instead of getToken() for better Edge Runtime compatibility
+  // This properly reads cookies set by NextAuth on Vercel
+  const session = await auth()
 
-  // If no token, redirect to sign in
-  if (!token) {
-    console.log('⚠️  [middleware] No token found, redirecting to sign in');
+  // If no session, redirect to sign in
+  if (!session || !session.user) {
+    console.log('⚠️  [middleware] No session found, redirecting to sign in');
     const signInUrl = new URL('/auth/signin', req.url)
     signInUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(signInUrl)
   }
 
-  console.log('🛡️  [middleware] Token found:', {
-    email: token.email,
-    role: token.role,
-    active: token.active,
+  console.log('🛡️  [middleware] Session found:', {
+    email: session.user.email,
+    role: session.user.role,
+    active: session.user.active,
   });
 
   // Check if user is active
-  if (!token.active) {
+  if (!session.user.active) {
     console.log('❌ [middleware] User not active, redirecting to unauthorized');
     return NextResponse.redirect(new URL('/auth/unauthorized', req.url))
   }
@@ -57,7 +55,7 @@ export async function middleware(req: NextRequest) {
   // Admin-only routes
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin') || pathname.startsWith('/api/sync')) {
     console.log('🛡️  [middleware] Admin-only route');
-    if (token.role !== 'ADMIN') {
+    if (session.user.role !== 'ADMIN') {
       console.log('❌ [middleware] User is not ADMIN, redirecting to unauthorized');
       return NextResponse.redirect(new URL('/auth/unauthorized', req.url))
     }
@@ -67,7 +65,7 @@ export async function middleware(req: NextRequest) {
   // Teacher and Admin can delete comments
   if (pathname.startsWith('/api/comments/delete')) {
     console.log('🛡️  [middleware] Comment deletion route');
-    if (token.role !== 'ADMIN' && token.role !== 'TEACHER') {
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'TEACHER') {
       console.log('❌ [middleware] User is not ADMIN or TEACHER, returning 403');
       return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
     }
