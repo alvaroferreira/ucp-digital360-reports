@@ -2,8 +2,8 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
-// Edge Runtime required for middleware
-export const runtime = 'edge'
+// Edge Runtime required for middleware (experimental-edge for Next.js 15)
+export const runtime = 'experimental-edge'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
