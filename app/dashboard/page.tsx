@@ -84,7 +84,7 @@ export default function DashboardPage() {
                   alt="Universidade Católica Portuguesa - Porto"
                   width={128}
                   height={48}
-                  className="w-32 h-auto"
+                  style={{ width: '128px', height: 'auto' }}
                   priority
                 />
               </div>

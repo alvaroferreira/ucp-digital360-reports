@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ReportData, Comment } from '@/types';
 import { ReportTable } from './ReportTable';
+import { ReportCharts } from './ReportCharts';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { getModuleName } from '@/lib/module-names';
@@ -128,9 +129,11 @@ export function ReportViewer({ data }: ReportViewerProps) {
   ];
 
   return (
-    <div className="space-y-6" id="report-content">
-      {/* Header com informação do módulo */}
-      <Card>
+    <div className="space-y-6 print:space-y-0" id="report-content">
+      {/* Página 1: Header + 2 primeiras secções */}
+      <div className="page-1">
+        {/* Header com informação do módulo */}
+        <Card className="print:break-inside-avoid">
         <CardHeader>
           <CardTitle className="text-2xl text-gray-900">
             Avaliação do curso pelos estudantes
@@ -149,14 +152,7 @@ export function ReportViewer({ data }: ReportViewerProps) {
 
             <div className="grid grid-cols-2 gap-x-4">
               <p className="font-semibold text-gray-900">Número de estudantes inscritos (inquiridos):</p>
-              <div>
-                <p className="text-gray-900">{data.totalStudents}</p>
-                {data.totalResponses > data.totalStudents && (
-                  <p className="text-xs text-gray-600 italic mt-1">
-                    (No caso deste número ser menor do que o número de respostas, significa que houveram desistências durante o curso)
-                  </p>
-                )}
-              </div>
+              <p className="text-gray-900">{data.totalStudents}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-x-4">
@@ -169,61 +165,86 @@ export function ReportViewer({ data }: ReportViewerProps) {
               <p className="text-gray-900">{data.responseRate}%</p>
             </div>
 
-            <div className="border-t border-gray-200 pt-2 mt-2">
-              <p className="text-xs text-gray-700 italic">
-                Escala de 1 (Muito baixo) a 7 (Muito elevado)
-              </p>
-              <p className="text-xs text-gray-700 italic">
-                O questionário foi lançado via Google Forms
-              </p>
-            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Avaliação da Disciplina */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-gray-900">1. Avaliação da Disciplina</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ReportTable
-            title=""
-            items={disciplineItems}
-          />
-        </CardContent>
-      </Card>
+        {/* Avaliação da Disciplina */}
+        <Card className="print:break-inside-avoid mt-6">
+          <CardHeader>
+            <CardTitle className="text-gray-900">1. Avaliação da Disciplina</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReportTable
+              title=""
+              items={disciplineItems}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Avaliação Docente */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-gray-900">2. Avaliação Docente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ReportTable
-            title=""
-            items={teachingItems}
-          />
-        </CardContent>
-      </Card>
+      {/* Página 2: Secções 2 e 3 + Gráficos */}
+      <div className="page-break page-2">
+        {/* Avaliação Docente */}
+        <Card className="print:break-inside-avoid">
+          <CardHeader>
+            <CardTitle className="text-gray-900">2. Avaliação Docente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReportTable
+              title=""
+              items={teachingItems}
+            />
+          </CardContent>
+        </Card>
 
-      {/* Avaliação da Organização */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-gray-900">3. Avaliação da organização</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ReportTable
-            title=""
-            items={organizationItems}
-          />
-        </CardContent>
-      </Card>
+        {/* Avaliação da Organização */}
+        <Card className="print:break-inside-avoid mt-6">
+          <CardHeader>
+            <CardTitle className="text-gray-900">3. Avaliação da organização</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReportTable
+              title=""
+              items={organizationItems}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Comentários e sugestões */}
-      <Card>
+      {/* Página 3: Todos os gráficos + Comentários */}
+      <div className="page-break page-3">
+        {/* Gráficos de Avaliação */}
+        <Card className="print:break-inside-avoid">
+          <CardHeader>
+            <CardTitle className="text-gray-900">4. Visualização de Desempenho</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <ReportCharts
+                title="Avaliação da Disciplina"
+                items={disciplineItems}
+              />
+              <ReportCharts
+                title="Avaliação Docente"
+                items={teachingItems}
+              />
+              <ReportCharts
+                title="Avaliação da Organização"
+                items={organizationItems}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* Página 4: Comentários */}
+      <div className="page-break page-4">
+        {/* Comentários e sugestões */}
+        <Card>
         <CardHeader>
-          <CardTitle className="text-gray-900">4. Comentários e sugestões</CardTitle>
+          <CardTitle className="text-gray-900">5. Comentários e Sugestões</CardTitle>
         </CardHeader>
         <CardContent>
           {comments.length === 0 ? (
@@ -253,6 +274,7 @@ export function ReportViewer({ data }: ReportViewerProps) {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

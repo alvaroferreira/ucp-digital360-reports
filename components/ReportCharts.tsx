@@ -32,20 +32,22 @@ export function ReportCharts({ title, items }: ReportChartsProps) {
   return (
     <div className="w-full mt-8">
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart
-          data={chartData}
-          layout="vertical"
-          margin={{ top: 5, right: 30, left: 200, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" domain={[0, 7]} />
-          <YAxis type="category" dataKey="name" width={180} />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="média" fill="#1e3a8a" />
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ width: '100%', maxWidth: '550px' }}>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" domain={[0, 7]} />
+            <YAxis type="category" dataKey="name" width={200} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="média" fill="#1e3a8a" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
